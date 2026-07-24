@@ -49,7 +49,16 @@ SYSTEM_PROMPT = (
     "You are a helpful, friendly AI assistant. When the user attaches a document, "
     "its extracted text will appear after their message inside a clearly marked block — "
     "use it to answer their question. When an image is attached, look at it carefully "
-    "before responding."
+    "before responding.\n\n"
+    "If the user asks you to build, clone, generate, or create a website, landing page, "
+    "or UI: output ONE complete, self-contained HTML file with all CSS in a <style> tag "
+    "and all JavaScript in a <script> tag (do not split into separate files unless the "
+    "user explicitly asks for separate files). Wrap it in a single fenced code block that "
+    "starts with ```html, and make the very first line inside the fence the comment "
+    "<!-- index.html -->. The app you're running in will automatically render a live "
+    "preview and offer a real ZIP download of this code — so never attempt to produce a "
+    "zip archive, base64 blob, or manual download/decode instructions yourself; just output "
+    "the code block. After the code, give a short 1-2 sentence summary of what you built."
 )
 
 AGENT_SYSTEM_PROMPT = (
@@ -58,7 +67,16 @@ AGENT_SYSTEM_PROMPT = (
     "accurate (math, current events, anything after your training data, or "
     "anything you're unsure about) instead of guessing. After tool results come "
     "back, give a clear final answer in plain language — don't just dump raw "
-    "tool output."
+    "tool output.\n\n"
+    "If the user asks you to build, clone, generate, or create a website, landing page, "
+    "or UI: output ONE complete, self-contained HTML file with all CSS in a <style> tag "
+    "and all JavaScript in a <script> tag (do not split into separate files unless the "
+    "user explicitly asks for separate files). Wrap it in a single fenced code block that "
+    "starts with ```html, and make the very first line inside the fence the comment "
+    "<!-- index.html -->. The app you're running in will automatically render a live "
+    "preview and offer a real ZIP download of this code — so never attempt to produce a "
+    "zip archive, base64 blob, or manual download/decode instructions yourself; just output "
+    "the code block."
 )
 
 
@@ -153,10 +171,17 @@ async def chat(
                 model=model,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=1024,
+                max_tokens=4096,
             )
-            reply = completion.choices[0].message.content
+            choice = completion.choices[0]
+            reply = choice.message.content
             tool_calls = []
+            if choice.finish_reason == "length":
+                reply = (
+                    (reply or "")
+                    + "\n\n*(⚠️ This response hit the length limit and may be cut off — "
+                    + "reply \"continue\" and I'll pick up where it left off.)*"
+                )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Groq API error: {exc}") from exc
 
