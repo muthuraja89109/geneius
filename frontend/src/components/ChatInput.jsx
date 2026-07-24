@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { resizeImageFile } from "../utils/resizeImage.js";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
@@ -9,12 +10,13 @@ export default function ChatInput({ onSend, disabled, agentMode, onToggleAgentMo
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const handleFilePick = (e) => {
+  const handleFilePick = async (e) => {
     const picked = e.target.files?.[0];
     if (!picked) return;
-    setFile(picked);
-    if (IMAGE_TYPES.includes(picked.type)) {
-      setPreviewUrl(URL.createObjectURL(picked));
+    const finalFile = IMAGE_TYPES.includes(picked.type) ? await resizeImageFile(picked) : picked;
+    setFile(finalFile);
+    if (IMAGE_TYPES.includes(finalFile.type)) {
+      setPreviewUrl(URL.createObjectURL(finalFile));
     } else {
       setPreviewUrl(null);
     }
