@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import CodePreview from "./CodePreview.jsx";
+import { extractCodeFiles } from "../utils/extractCodeFiles.js";
 
 export default function ChatMessage({ role, content, attachment, pending, toolCalls }) {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState(null); // "up" | "down" | null
+
+  const generatedFiles = !isUser && !pending ? extractCodeFiles(content) : [];
 
   const handleCopy = async () => {
     try {
@@ -59,6 +63,8 @@ export default function ChatMessage({ role, content, attachment, pending, toolCa
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
           )}
+
+          {generatedFiles.length > 0 && <CodePreview files={generatedFiles} />}
         </div>
 
         {!pending && content && (
