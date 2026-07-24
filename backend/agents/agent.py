@@ -32,7 +32,7 @@ def run_agent(client, model: str, messages: list) -> dict:
             tools=TOOLS,
             tool_choice="auto",
             temperature=0.4,
-            max_tokens=1024,
+            max_tokens=4096,
         )
         msg = completion.choices[0].message
 
